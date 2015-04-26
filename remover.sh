@@ -29,12 +29,22 @@ fi
 nick=$(curl -s -b .juick_cookies http://juick.com | grep "nav id=\"actions\"" | cut -d "@" -f 2 | cut -d "<" -f 1)
 echo "Current nick is $nick"
 
-delete_url=http://juick.com/post?body=D+%23
-#http://juick.com/post?body=D+%232779087
-
 function del_recommends {
     echo "deleting recommends..."
-    curl -s -b .juick_cookies http://juick.com/ryzhov-al/?show=recomm > resp.txt
+    while true
+    do
+	curl -s -b .juick_cookies http://juick.com/ryzhov-al/?show=recomm > resp.txt
+	if [ -z "$(cat resp.txt | grep 'article data-mid')" ] ; then
+	    echo "Done."
+	    rm -f resp.txt
+	    break
+	fi
+	for post in $(cat resp.txt | grep "article data-mid" | cut -d "\"" -f 2)
+	do
+	    echo "Deleting recommend for #$post..."
+	    curl -s -b .juick_cookies -F body="! #$post" http://juick.com/post2
+	done
+    done
 }
 
 function del_comments {
@@ -49,6 +59,7 @@ function del_posts {
 	curl -s -b .juick_cookies http://juick.com/$nick/ > resp.txt
 	if [ -z "$(cat resp.txt | grep 'article data-mid')" ] ; then
 	    echo "Done."
+	    rm -f resp.txt
 	    break
 	fi
 	for post in $(cat resp.txt | grep "article data-mid" | cut -d "\"" -f 2)
