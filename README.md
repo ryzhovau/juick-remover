@@ -1,7 +1,13 @@
 # juick-remover
-removes all posts, recommends or comments from juick.com
+removes all posts, recommends or comments from juick.com. Only `curl` and `bash` required.
 
-Just one feature implemeted:
+Type:
 ```
 ./remover.sh posts
 ```
+to remove all your posts or:
+```
+./remover.sh recommends
+```
+to remove all "recommend" marks.
+
