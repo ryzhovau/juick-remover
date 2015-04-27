@@ -50,14 +50,9 @@ function del_recommends {
 
 function del_comments {
     echo "Deleting comments..."
-    before=0
     while true
     do
-	if [ "$before" == "0" ] ; then
-	    curl -s -b .juick_cookies http://juick.com/?show=discuss > resp.txt
-	else
-	    curl -s -b .juick_cookies http://juick.com/?before=${before}\&show=discuss > resp.txt
-	fi
+	curl -s -b .juick_cookies http://juick.com/?show=discuss > resp.txt
 	if [ -z "$(cat resp.txt | grep 'article data-mid')" ] ; then
 	    echo "Done."
 	    exit
@@ -73,19 +68,9 @@ function del_comments {
 		echo -n "${comment}, "
 		curl -s -b .juick_cookies -F body="D #$post/$comment" http://juick.com/post2
 	    done
+	    curl -s -b .juick_cookies -F body="U #$post" http://juick.com/post2
 	    echo "done."
-	    rm -f post.txt
 	done
-	next_page=$(cat ./resp.txt | grep before= | grep 'class="page"' | cut -d '=' -f 4 | cut -d '&' -f 1)
-	if [ -z "$next_page" ] || [ "x$next_page" == "x$before" ] ;
-	then
-	    echo "Done. No more pages to process."
-	    rm -f resp.txt
-	    break
-	else
-	    echo "Processing another HTML page..."
-	    before=$next_page
-	fi
     done
 }
 
@@ -126,3 +111,8 @@ case $1 in
     usage
     ;;
 esac
+
+if [ -f .juick_cookies ] ; then
+	echo "This script uses .juick_cookies file. Delete it manually after"
+	echo "you are done playing with juick_remover.sh"
+fi
