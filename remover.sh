@@ -4,9 +4,9 @@ function usage {
     cat << EOF
 This script removes all posts, recommends or comments from juick.com
 
-Usage:	./remover.sh comments	- deletes all username comments,
+Usage:	./remover.sh comments	- deletes all username replies in subscribed posts,
 	./remover.sh posts	- deletes all username posts,
-	./remover.sh recommends	- deletes all username recomendations,
+	./remover.sh recommends	- deletes all username likes,
 	./remover.sh all	- deletes everything.
 EOF
     exit 1
@@ -55,17 +55,16 @@ function del_comments {
 	curl -s -b .juick_cookies http://juick.com/?show=discuss > resp.txt
 	if [ -z "$(cat resp.txt | grep 'article data-mid')" ] ; then
 	    echo "Done."
-	    exit
 	    rm -f resp.txt
 	    break
 	fi
 	for post in $(cat resp.txt | grep "article data-mid" | cut -d "\"" -f 2)
 	do
 	    author_nick="$(cat ./resp.txt | grep $post | grep 'time datetime' | cut -d '/' -f 2)"
-	    echo -n "at $author_nick/${post}: deleting "
+	    echo -n "$author_nick/${post}: deleting "
 	    for comment in $(curl -s -b .juick_cookies http://juick.com/$author_nick/$post  | grep $nick | grep 'class="msg"' | cut -d '"' -f 2)
 	    do
-		echo -n "${comment}, "
+		echo -n "/${comment}, "
 		curl -s -b .juick_cookies -F body="D #$post/$comment" http://juick.com/post2
 	    done
 	    curl -s -b .juick_cookies -F body="U #$post" http://juick.com/post2
@@ -114,5 +113,5 @@ esac
 
 if [ -f .juick_cookies ] ; then
 	echo "This script uses .juick_cookies file. Delete it manually after"
-	echo "you are done playing with juick_remover.sh"
+	echo "you are done playing with $0"
 fi
