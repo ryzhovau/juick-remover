@@ -17,5 +17,5 @@ to remove all comments. May take a long time to run.
 ```
 ./remover.sh all
 ```
-to remove all everithing.
+to remove all everything.
 
