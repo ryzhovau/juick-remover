@@ -30,7 +30,7 @@ nick=$(curl -s -b .juick_cookies http://juick.com | grep "nav id=\"actions\"" | 
 echo "Current nick is $nick"
 
 function del_recommends {
-    echo "deleting recommends..."
+    echo "Deleting recommends..."
     while true
     do
 	curl -s -b .juick_cookies http://juick.com/ryzhov-al/?show=recomm > resp.txt
@@ -48,12 +48,48 @@ function del_recommends {
 }
 
 function del_comments {
-    echo "deleting comments..."
-    curl -s -b .juick_cookies http://juick.com/?show=discuss > resp.txt
+    echo "Deleting comments may takes a long time, please be patient..."
+    before=0
+    while true
+    do
+	if [ "$before" == "0" ] ; then
+	    curl -s -b .juick_cookies http://juick.com/?show=discuss > resp.txt
+	else
+	    curl -s -b .juick_cookies http://juick.com/?before=${before}\&show=discuss > resp.txt
+	fi
+	if [ -z "$(cat resp.txt | grep 'article data-mid')" ] ; then
+	    echo "Done."
+	    exit
+	    rm -f resp.txt
+	    break
+	fi
+	for post in $(cat resp.txt | grep "article data-mid" | cut -d "\"" -f 2)
+	do
+	    author_nick="$(cat ./resp.txt | grep $post | grep 'time datetime' | cut -d '/' -f 2)"
+	    echo -n "at $author_nick/${post}: deleting "
+	    for comment in $(curl -s -b .juick_cookies http://juick.com/$author_nick/$post  | grep $nick | grep 'class="msg"' | cut -d '"' -f 2)
+	    do
+		echo -n "${comment}, "
+		curl -s -b .juick_cookies -F body="D #$post/$comment" http://juick.com/post2
+	    done
+	    echo "...done."
+	    rm -f post.txt
+	done
+	next_page=$(cat ./resp.txt | grep before= | grep 'class="page"' | cut -d '=' -f 4 | cut -d '&' -f 1)
+	if [ -z "$next_page" ] || [ "x$next_page" == "x$before" ] ;
+	then
+	    echo "Done. No more pages to process."
+	    rm -f resp.txt
+	    break
+	else
+	    echo "Processing another HTML page..."
+	    before=$next_page
+	fi
+    done
 }
 
 function del_posts {
-    echo "deleting posts..."
+    echo "Deleting posts..."
     while true
     do
 	curl -s -b .juick_cookies http://juick.com/$nick/ > resp.txt
@@ -72,13 +108,13 @@ function del_posts {
 
 case $1 in
     comments)
-    del_comments
+	del_comments
     ;;
     recommends)
-    del_recommends
+	del_recommends
     ;;
     posts)
-    del_posts
+	del_posts
     ;;
     *)
     usage
