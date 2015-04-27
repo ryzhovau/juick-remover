@@ -6,7 +6,8 @@ This script removes all posts, recommends or comments from juick.com
 
 Usage:	./remover.sh comments	- deletes all username comments,
 	./remover.sh posts	- deletes all username posts,
-	./remover.sh recommends	- deletes all username recomendations.
+	./remover.sh recommends	- deletes all username recomendations,
+	./remover.sh all	- deletes everything.
 EOF
     exit 1
 }
@@ -48,7 +49,7 @@ function del_recommends {
 }
 
 function del_comments {
-    echo "Deleting comments may takes a long time, please be patient..."
+    echo "Deleting comments..."
     before=0
     while true
     do
@@ -72,7 +73,7 @@ function del_comments {
 		echo -n "${comment}, "
 		curl -s -b .juick_cookies -F body="D #$post/$comment" http://juick.com/post2
 	    done
-	    echo "...done."
+	    echo "done."
 	    rm -f post.txt
 	done
 	next_page=$(cat ./resp.txt | grep before= | grep 'class="page"' | cut -d '=' -f 4 | cut -d '&' -f 1)
@@ -115,6 +116,11 @@ case $1 in
     ;;
     posts)
 	del_posts
+    ;;
+    all)
+	del_posts
+	del_recommends
+	del_comments
     ;;
     *)
     usage
