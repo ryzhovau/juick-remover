@@ -13,9 +13,8 @@ to remove all likes.
 ```
 ./remover.sh comments
 ```
-to remove all comments. May take a long time to run.
+to remove all replies in subscribed posts. May take a long time to run.
 ```
 ./remover.sh all
 ```
-to remove all everything.
-
+to remove everything.
